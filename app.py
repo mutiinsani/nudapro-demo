@@ -34,7 +34,7 @@ def nivu_valuation(payload):
         API_URL,
         headers=headers,
         json=payload,
-        timeout=15
+        timeout=30
     )
 
     if response.status_code == 200:
