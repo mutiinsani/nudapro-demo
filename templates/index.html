@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Value Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Property Value Calculator</h1>
+        </header>
+
+        <div class="content-wrapper">
+            <form id="mainForm">
+                <div class="grid-layout">
+
+                    <!-- Property Data Section -->
+                    <div class="section section-full">
+                        <h2>Property Data</h2>
+
+                        <div class="form-group">
+                            <label for="neighborhood">Neighborhood</label>
+                            <div class="neighborhood-search-group">
+                                <input type="text" id="neighborhoodSearch" name="neighborhoodSearch"
+                                    placeholder="Type neighborhood and press Enter..." required>
+                                <div id="neighborhoodDropdown" class="neighborhood-dropdown" style="display: none;">
+                                    <select id="neighborhood" name="neighborhood" required>
+                                        <option value="">Select from search results</option>
+                                    </select>
+                                </div>
+                                <div id="neighborhoodError" class="error-message" style="display: none;"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="postalCode">Postal Code</label>
+                                <input type="text" id="postalCode" name="postalCode" placeholder="e.g., 04543000"
+                                    required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="address">Address</label>
+                                <input type="text" id="address" name="address" placeholder="e.g., Rua das Flores, 123"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="propertyType">Property Type</label>
+                                <select id="propertyType" name="propertyType" required>
+                                    <option value="">Select Property Type</option>
+                                    <option value="3">Casa</option>
+                                    <option value="1">Apartamento</option>
+                                    <option value="2">Studio</option>
+                                    <option value="15">Loft</option>
+                                    <option value="16">Sobrado</option>
+                                    <option value="4">Casa em condomínio</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="area">Area (sqm)</label>
+                                <input type="number" id="area" name="area" placeholder="e.g., 100" value="100" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="unitPrice">Unit Price</label>
+                                <input type="number" id="unitPrice" name="unitPrice" placeholder="e.g., 9800"
+                                    value="9800" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="bedrooms">Bedrooms</label>
+                                <input type="number" id="bedrooms" name="bedrooms" placeholder="e.g., 3" value="3"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="bathrooms">Bathrooms</label>
+                                <input type="number" id="bathrooms" name="bathrooms" placeholder="e.g., 3" value="3"
+                                    required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="suites">Suites</label>
+                                <input type="number" id="suites" name="suites" placeholder="e.g., 1" value="1" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="parkingSpaces">Parking Spaces</label>
+                            <input type="number" id="parkingSpaces" name="parkingSpaces" placeholder="e.g., 2" value="2"
+                                required>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <!-- Personal Data Section -->
+                <div class="section section-full">
+                    <h2>Personal Data</h2>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" name="name" placeholder="Full Name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" placeholder="your@email.com" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dateOfBirth">Date of Birth</label>
+                            <input type="date" id="dateOfBirth" name="dateOfBirth" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+        </div>
+
+        <!-- Submit Button -->
+        <div class="button-group">
+            <button type="submit" class="btn-primary">Calculate Price</button>
+        </div>
+        </form>
+
+        <!-- Results Section -->
+        <div class="section results-section section-full" id="resultsSection" style="display: none;">
+            <h2>Valuation Results</h2>
+            <div class="price-display">
+                <div class="price-item">
+                    <div class="price-label">NIVU Price</div>
+                    <div class="price-value" id="nivuPrice">R$ 0.00</div>
+                </div>
+                <div class="price-item">
+                    <div class="price-label">Desagio</div>
+                    <div class="price-value" id="desagioRange">0%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        // Handle Neighborhood Search
+        document.getElementById('neighborhoodSearch').addEventListener('keypress', async function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+
+                const searchQuery = this.value.trim();
+
+                if (!searchQuery) {
+                    document.getElementById('neighborhoodError').textContent = 'Please enter a neighborhood name';
+                    document.getElementById('neighborhoodError').style.display = 'block';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/search-neighborhood', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ query: searchQuery })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success && data.results.length > 0) {
+                        // Clear previous results
+                        const select = document.getElementById('neighborhood');
+                        select.innerHTML = '<option value="">Select from search results</option>';
+
+                        // Populate dropdown with results
+                        data.results.forEach(result => {
+                            const option = document.createElement('option');
+                            option.value = result.label;  // Store label as value
+                            option.textContent = result.value;  // Display value to user
+                            select.appendChild(option);
+                        });
+
+                        // Show dropdown
+                        document.getElementById('neighborhoodDropdown').style.display = 'block';
+                        document.getElementById('neighborhoodError').style.display = 'none';
+                    } else {
+                        document.getElementById('neighborhoodError').textContent = 'No neighborhoods found. Try a different search.';
+                        document.getElementById('neighborhoodError').style.display = 'block';
+                        document.getElementById('neighborhoodDropdown').style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Error searching neighborhoods:', error);
+                    document.getElementById('neighborhoodError').textContent = 'Error searching neighborhoods';
+                    document.getElementById('neighborhoodError').style.display = 'block';
+                }
+            }
+        });
+
+        // Handle Main Form Submission
+        document.getElementById('mainForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            // Validate neighborhood selection
+            const neighborhood = document.getElementById('neighborhood').value;
+            console.log(neighborhood);
+            if (!neighborhood) {
+                alert('Please search and select a neighborhood');
+                return;
+            }
+
+            // Collect Property Data
+            const propertyData = {
+                neighborhood: neighborhood,  // This will be the label (e.g., "sp>barretos>ibirapuera")
+                postalCode: document.getElementById('postalCode').value,
+                address: document.getElementById('address').value,
+                propertyType: document.getElementById('propertyType').value,
+                area: parseInt(document.getElementById('area').value),
+                unitPrice: parseFloat(document.getElementById('unitPrice').value),
+                bedrooms: parseInt(document.getElementById('bedrooms').value),
+                bathrooms: parseInt(document.getElementById('bathrooms').value),
+                suites: parseInt(document.getElementById('suites').value),
+                parkingSpaces: parseInt(document.getElementById('parkingSpaces').value)
+            };
+
+            // Collect Personal Data
+            const personalData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                dateOfBirth: document.getElementById('dateOfBirth').value,
+                gender: document.getElementById('gender').value
+            };
+
+            const formData = {
+                propertyData: propertyData,
+                personalData: personalData
+            };
+
+            try {
+                const response = await fetch('/api/calculate-price', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update NIVU price display
+                    document.getElementById('nivuPrice').textContent =
+                        'R$ ' + (data.nivu_price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                    // Update desagio display
+                    const desagioMin = data.desagio_min || 0;
+                    const desagioMax = data.desagio_max;
+                    let desagioText = '';
+
+                    if (desagioMax === null || desagioMax === undefined) {
+                        // Show only desagio_min
+                        desagioText = (desagioMin).toFixed(2) + '%';
+                    } else {
+                        // Show as range desagio_min - desagio_max
+                        desagioText = (desagioMax).toFixed(2) + '% - ' + (desagioMin).toFixed(2) + '%';
+                    }
+
+                    document.getElementById('desagioRange').textContent = desagioText;
+
+                    // Show results section
+                    document.getElementById('resultsSection').style.display = 'block';
+
+                    // Scroll to results
+                    document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to calculate prices'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error calculating prices');
+            }
+        });
+
+    </script>
+</body>
+
+</html>
