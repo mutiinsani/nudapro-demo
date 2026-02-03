@@ -25,8 +25,18 @@
                         <div class="form-group">
                             <label for="neighborhood">Neighborhood</label>
                             <div class="neighborhood-search-group">
-                                <input type="text" id="neighborhoodSearch" name="neighborhoodSearch"
-                                    placeholder="Type neighborhood and press Enter..." required>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <input type="text" id="neighborhoodSearch" name="neighborhoodSearch"
+                                        placeholder="Type neighborhood..." required style="flex: 1;">
+                                    <button type="button" id="neighborhoodSearchBtn" class="btn-search-icon"
+                                        title="Search">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <path d="m21 21-4.35-4.35"></path>
+                                        </svg>
+                                    </button>
+                                </div>
                                 <div id="neighborhoodDropdown" class="neighborhood-dropdown" style="display: none;">
                                     <select id="neighborhood" name="neighborhood" required>
                                         <option value="">Select from search results</option>
@@ -35,6 +45,7 @@
                                 <div id="neighborhoodError" class="error-message" style="display: none;"></div>
                             </div>
                         </div>
+
 
                         <div class="form-row">
                             <div class="form-group">
@@ -167,58 +178,51 @@
     </div>
 
     <script>
-        // Handle Neighborhood Search
-        document.getElementById('neighborhoodSearch').addEventListener('keypress', async function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
+        // Handle Neighborhood Search Button Click
+        document.getElementById('neighborhoodSearchBtn').addEventListener('click', async function (e) {
+            e.preventDefault();
+            const searchQuery = document.getElementById('neighborhoodSearch').value.trim();
 
-                const searchQuery = this.value.trim();
+            if (!searchQuery) {
+                document.getElementById('neighborhoodError').textContent = 'Please enter a neighborhood name';
+                document.getElementById('neighborhoodError').style.display = 'block';
+                return;
+            }
 
-                if (!searchQuery) {
-                    document.getElementById('neighborhoodError').textContent = 'Please enter a neighborhood name';
-                    document.getElementById('neighborhoodError').style.display = 'block';
-                    return;
-                }
+            try {
+                const response = await fetch('/api/search-neighborhood', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query: searchQuery })
+                });
 
-                try {
-                    const response = await fetch('/api/search-neighborhood', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ query: searchQuery })
+                const data = await response.json();
+
+                if (data.success && data.results.length > 0) {
+                    const select = document.getElementById('neighborhood');
+                    select.innerHTML = '<option value="">Select from search results</option>';
+                    data.results.forEach(result => {
+                        const option = document.createElement('option');
+                        option.value = result.label;
+                        option.textContent = result.value;
+                        select.appendChild(option);
                     });
-
-                    const data = await response.json();
-
-                    if (data.success && data.results.length > 0) {
-                        // Clear previous results
-                        const select = document.getElementById('neighborhood');
-                        select.innerHTML = '<option value="">Select from search results</option>';
-
-                        // Populate dropdown with results
-                        data.results.forEach(result => {
-                            const option = document.createElement('option');
-                            option.value = result.label;  // Store label as value
-                            option.textContent = result.value;  // Display value to user
-                            select.appendChild(option);
-                        });
-
-                        // Show dropdown
-                        document.getElementById('neighborhoodDropdown').style.display = 'block';
-                        document.getElementById('neighborhoodError').style.display = 'none';
-                    } else {
-                        document.getElementById('neighborhoodError').textContent = 'No neighborhoods found. Try a different search.';
-                        document.getElementById('neighborhoodError').style.display = 'block';
-                        document.getElementById('neighborhoodDropdown').style.display = 'none';
-                    }
-                } catch (error) {
-                    console.error('Error searching neighborhoods:', error);
-                    document.getElementById('neighborhoodError').textContent = 'Error searching neighborhoods';
+                    document.getElementById('neighborhoodDropdown').style.display = 'block';
+                    document.getElementById('neighborhoodError').style.display = 'none';
+                } else {
+                    document.getElementById('neighborhoodError').textContent = 'No neighborhoods found. Try a different search.';
                     document.getElementById('neighborhoodError').style.display = 'block';
+                    document.getElementById('neighborhoodDropdown').style.display = 'none';
                 }
+            } catch (error) {
+                console.error('Error searching neighborhoods:', error);
+                document.getElementById('neighborhoodError').textContent = 'Error searching neighborhoods';
+                document.getElementById('neighborhoodError').style.display = 'block';
             }
         });
+
 
         // Handle Main Form Submission
         document.getElementById('mainForm').addEventListener('submit', async function (e) {

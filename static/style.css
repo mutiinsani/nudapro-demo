@@ -157,6 +157,36 @@ select:hover {
     transform: translateY(1px);
 }
 
+.btn-search-icon {
+    padding: 10px;
+    background: #2a5298;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+}
+
+.btn-search-icon:hover {
+    background: #1e3c72;
+    box-shadow: 0 4px 12px rgba(42, 82, 152, 0.3);
+}
+
+.btn-search-icon:active {
+    transform: translateY(1px);
+}
+
+.btn-search-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+
 .result-box {
     margin-top: 20px;
     padding: 16px 20px;
