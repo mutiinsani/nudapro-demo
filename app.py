@@ -141,7 +141,10 @@ def calculate_price():
         address = property_data.get('address')
         property_type = int(property_data.get('propertyType'))
         area = int(property_data.get('area', 0))
-        unit_price = float(property_data.get('unitPrice', 0))
+        
+        price = float(property_data.get('price', 0))
+        unit_price = price / area if area > 0 else 0
+        
         bedrooms = int(property_data.get('bedrooms', 0))
         bathrooms = int(property_data.get('bathrooms', 0))
         suites = int(property_data.get('suites', 0))
@@ -214,6 +217,7 @@ def calculate_price():
         # nivu_median = nivu_pricing.get("price", 0)
         nivu_liquidity_label = nivu_score.get("fit", "N/A")
         nivu_liquidity_value = nivu_score.get("value", 0)
+        print(f"  Liquidity: {nivu_liquidity_label} ({nivu_liquidity_value})")
         
         
         # Get ITBI price
@@ -230,8 +234,9 @@ def calculate_price():
         age = (datetime.now() - dob).days // 365
         print(f"  Personal Info - Name: {name}, Email: {email}, Age: {age}, Gender: {gender}")
         # Calculate desagio or other adjustments if needed
-        desagio_min, desagio_max = calculate_desagio(nivu_price, itbi_avg, itbi_min,itbi_max, gender, age)
-        print(f"  Desagio Min: {desagio_min}, Desagio Max: {desagio_max}")    
+        usu_value, bare_value, desagio_min, desagio_max = calculate_desagio(nivu_price, itbi_avg, itbi_min,itbi_max, gender, age)
+        print(f"  Usufruct Value: {usu_value}, Bare Property Value: {bare_value}")
+        print(f"  Desagio Min: {desagio_min}, Desagio Max: {desagio_max}")
         
         
         result = jsonify({
@@ -239,8 +244,8 @@ def calculate_price():
             'nivu_price': nivu_price,
             'desagio_min': desagio_min,
             'desagio_max': desagio_max,
-            'nivu_liquidity_label': nivu_liquidity_label,
-            'nivu_liquidity_value': nivu_liquidity_value,
+            'usu_value': usu_value,
+            'bare_value': bare_value,
             'personal_info': {
                 'name': name,
                 'email': email,
@@ -294,11 +299,6 @@ def get_usufruct_percentage(actuarial_factor: float, discount_rate: float = 0.12
     usufruct_percentage = min(actuarial_factor / perpetuity_factor, 1.0)
     return usufruct_percentage
 
-def get_bare_value(usu_pct: float, price: float):
-    usu_value = price * usu_pct
-    bare_value = price - usu_value
-    return bare_value
-
 def calculate_desagio(nivu_price, itbi_avg, itbi_min,itbi_max, gender, age):
     """
     Calculate property prices based on usufruct percentage, NIVU and ITBI values.
@@ -318,8 +318,9 @@ def calculate_desagio(nivu_price, itbi_avg, itbi_min,itbi_max, gender, age):
     
     variance = abs(nivu_price - itbi_avg) / itbi_avg * 100 if itbi_avg else 0
     print("  Variance between NIVU and ITBI Avg:", variance)
-    bare_value = get_bare_value(usu_pct, nivu_price)
-    print("  Bare Value:", bare_value)
+    
+    usu_value = nivu_price * usu_pct
+    bare_value = nivu_price - usu_value
     
     desagio_min = bare_value / nivu_price * 100 if nivu_price else 0
     desagio_max = None
@@ -328,7 +329,7 @@ def calculate_desagio(nivu_price, itbi_avg, itbi_min,itbi_max, gender, age):
         desagio_min = bare_value / itbi_min * 100 if itbi_min else 0
         desagio_max = bare_value / itbi_max * 100 if itbi_max else 0
 
-    return desagio_min, desagio_max
+    return usu_value, bare_value, desagio_min, desagio_max
 
 
 if __name__ == '__main__':

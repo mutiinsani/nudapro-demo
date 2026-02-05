@@ -24,7 +24,7 @@
 
                         <div class="form-group">
                             <label for="neighborhood">Neighborhood</label>
-                            <div class="neighborhood-search-group">
+                            <div class="neighborhood-search-group" style="position: relative;">
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     <input type="text" id="neighborhoodSearch" name="neighborhoodSearch"
                                         placeholder="Type neighborhood..." required style="flex: 1;">
@@ -37,7 +37,8 @@
                                         </svg>
                                     </button>
                                 </div>
-                                <div id="neighborhoodDropdown" class="neighborhood-dropdown" style="display: none;">
+                                <div id="neighborhoodDropdown" class="neighborhood-dropdown"
+                                    style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 10; margin-top: 4px;">
                                     <select id="neighborhood" name="neighborhood" required>
                                         <option value="">Select from search results</option>
                                     </select>
@@ -45,6 +46,7 @@
                                 <div id="neighborhoodError" class="error-message" style="display: none;"></div>
                             </div>
                         </div>
+
 
 
                         <div class="form-row">
@@ -83,9 +85,9 @@
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="unitPrice">Unit Price</label>
-                                <input type="number" id="unitPrice" name="unitPrice" placeholder="e.g., 9800"
-                                    value="9800" required>
+                                <label for="price">Property Price</label>
+                                <input type="number" id="price" name="price" placeholder="e.g., 980000" value="980000"
+                                    required>
                             </div>
 
                             <div class="form-group">
@@ -161,12 +163,17 @@
         </form>
 
         <!-- Results Section -->
+        <!-- Results Section -->
         <div class="section results-section section-full" id="resultsSection" style="display: none;">
             <h2>Valuation Results</h2>
             <div class="price-display">
                 <div class="price-item">
-                    <div class="price-label">NIVU Price</div>
-                    <div class="price-value" id="nivuPrice">R$ 0.00</div>
+                    <div class="price-label">Bare Property Value</div>
+                    <div class="price-value" id="barePropertyValue">R$ 0.00</div>
+                </div>
+                <div class="price-item">
+                    <div class="price-label">Usufruct</div>
+                    <div class="price-value" id="usufructValue">R$ 0.00</div>
                 </div>
                 <div class="price-item">
                     <div class="price-label">Desagio</div>
@@ -174,6 +181,7 @@
                 </div>
             </div>
         </div>
+
     </div>
     </div>
 
@@ -223,6 +231,19 @@
             }
         });
 
+        // Handle Neighborhood Selection - Auto-fill the search input
+        document.getElementById('neighborhood').addEventListener('change', function (e) {
+            if (this.value) {
+                // Get the selected option's text (display value)
+                const selectedText = this.options[this.selectedIndex].text;
+                // Set the search input value to the selected neighborhood
+                document.getElementById('neighborhoodSearch').value = selectedText;
+                // Hide the dropdown
+                document.getElementById('neighborhoodDropdown').style.display = 'none';
+            }
+        });
+
+
 
         // Handle Main Form Submission
         document.getElementById('mainForm').addEventListener('submit', async function (e) {
@@ -243,7 +264,7 @@
                 address: document.getElementById('address').value,
                 propertyType: document.getElementById('propertyType').value,
                 area: parseInt(document.getElementById('area').value),
-                unitPrice: parseFloat(document.getElementById('unitPrice').value),
+                price: parseFloat(document.getElementById('price').value),
                 bedrooms: parseInt(document.getElementById('bedrooms').value),
                 bathrooms: parseInt(document.getElementById('bathrooms').value),
                 suites: parseInt(document.getElementById('suites').value),
@@ -275,9 +296,13 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Update NIVU price display
-                    document.getElementById('nivuPrice').textContent =
-                        'R$ ' + (data.nivu_price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    // Update Bare Property Value display
+                    document.getElementById('barePropertyValue').textContent =
+                        'R$ ' + (data.bare_value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                    // Update Usufruct Value display
+                    document.getElementById('usufructValue').textContent =
+                        'R$ ' + (data.usu_value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
                     // Update desagio display
                     const desagioMin = data.desagio_min || 0;
