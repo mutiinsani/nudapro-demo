@@ -64,7 +64,6 @@ def get_itbi_price(postal_code, property_type, built_area_sqm):
     return itbi_price_avg, itbi_price_min, itbi_price_max
     
 
-
 def nivu_search_neigh(query ):
     """
     Search for neighborhoods using NIVU API.
@@ -322,12 +321,15 @@ def calculate_desagio(nivu_price, itbi_avg, itbi_min,itbi_max, gender, age):
     usu_value = nivu_price * usu_pct
     bare_value = nivu_price - usu_value
     
-    desagio_min = bare_value / nivu_price * 100 if nivu_price else 0
+    desagio_min = usu_value / nivu_price * 100 if nivu_price else 0
     desagio_max = None
     
     if variance > 10:
-        desagio_min = bare_value / itbi_min * 100 if itbi_min else 0
-        desagio_max = bare_value / itbi_max * 100 if itbi_max else 0
+        desagio_min = usu_value / itbi_min * 100 if itbi_min else 0
+        desagio_max = usu_value / itbi_max * 100 if itbi_max else 0
+        if desagio_min > 95:
+            desagio_min = usu_value / itbi_avg * 100 if itbi_avg else 0
+            
 
     return usu_value, bare_value, desagio_min, desagio_max
 
